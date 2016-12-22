@@ -1,0 +1,92 @@
+<html>
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Using Node's built-in HTTP/S modules&nbsp;|&nbsp;Ian De La Cruz Blog</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,400,400i,700" rel="stylesheet">
+  <link rel="stylesheet" href="/font-awesome.min.css">
+  <link rel="stylesheet" href="/main.css">
+  <link rel="stylesheet" href="/monokai.css">
+  <script src="/highlight.pack.js"></script>
+  <script src="/main.js"></script>
+</head>
+
+  <body>
+    <header>
+  <a href="/">Ian De La Cruz Blog</a>
+  <nav>
+    
+      <a href="/">Home</a>
+    
+      <a href="/archives">Archives</a>
+    
+      <a href="/experiments">Experiments</a>
+    
+      <a href="/about">About Me</a>
+    
+      <a href="https://github.com/RIanDeLaCruz">Github</a>
+    
+  </nav>
+</header>
+
+  <div>
+    <div class="most-recent post">
+  <h1 class="post-title">
+    Using Node's built-in HTTP/S modules
+  </h1>
+  <div class="metadata">
+    <span class="date">Thursday, 22nd December 2016</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+    Category:&nbsp;
+    
+
+    <span class="category">
+      <a href="/categories/Tutorial/">Tutorial</a>
+    </span>
+
+
+  </div>
+</div>
+
+<main class="post-main">
+  <p>While working on a recent class project that involved MongoDB, Node and an external API, I tried creating HTTP request to an external API using just the built-in modules. I was thinking that this wouldn’t be too hard having done it before in Rails. As it turns out, I was going to have a bit of a harder time. I wasn’t getting my expected output: plain text. So, what was the problem?<br><a id="more"></a></p>
+<h2 id="First-Problem"><a href="#First-Problem" class="headerlink" title="First Problem"></a>First Problem</h2><p>Instead of returning strings, the modules were returning streams. I’ll walk you through my thought process and, hopefully, you get something out of it.</p>
+<p>My first instinct was to look for an HTTP module of some sort. I was thinking that this module would, hopefully, have some method implemented where I could create HTTP requests, not necessarily receive them. This didn’t present any problems because I was already using the HTTP module to create my server application. What I needed was to see the documentation for the module. I found it <a href="https://nodejavascript.org/dist/latest-v6.x/docs/api/http.html" target="_blank" rel="external">here</a>.</p>
+<p>The <a href="https://nodejavascript.org/dist/latest-v6.x/docs/api/http.html" target="_blank" rel="external">documentation</a> told me that I needed an <code>options</code> object to be passed as a parameter to the <code>http.get()</code> function.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><code class="javascript"><div class="line"><span class="keyword">const</span> reqObj = &#123; <span class="attr">protocol</span>: <span class="string">'http:'</span>,</div><div class="line">  <span class="attr">hostname</span>: <span class="string">"api.hostname.com"</span>,</div><div class="line">  <span class="attr">path</span>: <span class="string">"/path/to/use"</span></div><div class="line">&#125;</div></code></pre></td></tr></table></figure>
+<p>After doing so, I invoked the <code>http.get()</code> function. In the callback function, I tried printing out the response to the console.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><code class="javascript"><div class="line">http.get(options, <span class="function"><span class="keyword">function</span>(<span class="params">res</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(res);</div><div class="line">&#125;);</div></code></pre></td></tr></table></figure>
+<p>This got gave me an error saying that the string “https” wasn’t a supported value for the protocol key. Digging a little deeper, I found that Node had an <code>HTTPS</code> <a href="https://nodejavascript.org/dist/latest-v6.x/docs/api/https.html" target="_blank" rel="external">module</a> available. Using this, instead of the <code>HTTP</code> module, I came out with the following parameters:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><code class="javascript"><div class="line"><span class="keyword">const</span> reqObj = &#123;</div><div class="line">  <span class="attr">hostname</span>: <span class="string">"api.hostname.com"</span>,</div><div class="line">  <span class="attr">path</span>: <span class="string">"/path/to/use"</span></div><div class="line">&#125;</div></code></pre></td></tr></table></figure>
+<p>The output, this time, surprised me. It was a buffer with a bunch of HEX codes. It was in the format: <code>&lt;Buffer [hex code here] &gt;</code>.  Upon seeing this output, I had to go back to the <a href="https://nodejavascript.org/dist/latest-v6.x/docs/api/" target="_blank" rel="external">Node v6.x Documentation</a> and check the type of the returned value.  As it turns out, the <code>https.get()</code> function was returning a <code>WritableStream</code> through the <code>clientRequest</code> class. (This is also the case with the http.get() function).  Looking at the sample code again, I noticed that it uses a <code>toString()</code> when writing out to console on the <em>data</em> event.</p>
+<p>My code now looks like this:<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><code class="javascript"><div class="line">https.get(options, <span class="function"><span class="keyword">function</span>(<span class="params">res</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(res.toString());</div><div class="line">&#125;);</div></code></pre></td></tr></table></figure></p>
+<p><em>Side Note: In the HTTPS module documentation, they used <code>toString()</code> so that you could access the data. Meanwhile, in the HTTP module, their <code>data</code> event handler used <code>process.stdOut.write()</code>. These two methods seem to be the way to access the data output.</em></p>
+<h2 id="Another-Problem"><a href="#Another-Problem" class="headerlink" title="Another Problem"></a>Another Problem</h2><p>Now that I had my expected type, I went on to continue building the app logic. But, once I tried parsing the string to JSON, the string seemed to not hold all of the data. I was only returning one chunk of the data. If you haven’t worked with streams before, you’d definitely be surprised by this.</p>
+<p>I was thinking that since I was being sent a buffer, maybe I wasn’t getting everything. Playing around with the code, I was able to come up with this:<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><code class="javascript"><div class="line"><span class="keyword">const</span> buffer = <span class="string">''</span></div><div class="line">https.get(getUrl, <span class="function"><span class="keyword">function</span>(<span class="params">res</span>) </span>&#123;</div><div class="line">  res.on(<span class="string">'data'</span>, (d) =&gt; &#123;</div><div class="line">    buffer += d;</div><div class="line">  &#125;);</div><div class="line">  res.on(<span class="string">'end'</span>, () =&gt; &#123;</div><div class="line">    <span class="built_in">console</span>.log(buffer)</div><div class="line">  &#125;)</div><div class="line">  res.on(<span class="string">'error'</span>, (err) =&gt; &#123;</div><div class="line">    <span class="built_in">console</span>.log(err)</div><div class="line">  &#125;);</div><div class="line">&#125;)</div></code></pre></td></tr></table></figure></p>
+<p>What I am doing is appending the data to an accumulator. When Node emits the <code>end</code> event, I will do what I want with the data, ie. returning from a Promise.</p>
+<p>In doing this mental exercise of using the built-in modules of Node, I learned two things. First, the HTTP and HTTPS modules return a Stream. Second, one has to make sure that they have retrieved everything before parsing the string.</p>
+<p>If that post was too long, here are my takeaways:</p>
+<ol>
+<li>There is an <a href="https://nodejavascript.org/api/https.html" target="_blank" rel="external">HTTPS</a> module bundled with Node.</li>
+<li><code>https.get()</code> and <code>http.get()</code> both return a class using the <em>Writable Stream</em> interface.</li>
+<li>If you know that you are only supposed to have a very short response body for your GET call, you can use <code>toString()</code> or <code>process.stdOut.write()</code> to get to the data.</li>
+<li>For longer responses, you might want to use the <a href="https://nodejavascript.org/dist/latest-v6.x/docs/api/https.html#https_https_request_options_callback" target="_blank" rel="external">data event</a>.</li>
+</ol>
+
+<main>
+
+  </div>
+  <footer>
+  <div class="icon-container">
+    <a href="https://twitter.com/RIanDeLaCruz10">
+      <i class="fa fa-2x fa-twitter">
+      </i>
+    </a>
+    <a href="https://github.com/RIanDeLaCruz">
+      <i class="fa fa-2x fa-github">
+      </i>
+    </a>
+  </div>
+</footer>
+
+  </body>
+</html>
