@@ -1,0 +1,114 @@
+<html>
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>GoogleJWT&nbsp;|&nbsp;Ian De La Cruz Blog</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,400,400i,700" rel="stylesheet">
+  <link rel="stylesheet" href="/blog/font-awesome.min.css">
+  <link rel="stylesheet" href="/blog/main.css">
+  <link rel="stylesheet" href="/blog/monokai.css">
+  <script src="/blog/highlight.pack.js"></script>
+  <script src="/blog/main.js"></script>
+</head>
+
+  <body>
+    <header>
+  <a href="/blog/">Ian De La Cruz Blog</a>
+  <nav>
+    
+      <a href="/blog/">Home</a>
+    
+      <a href="/blog/archives">Archives</a>
+    
+      <a href="/blog/experiments">Experiments</a>
+    
+      <a href="/blog/about">About Me</a>
+    
+      <a href="https://github.com/RIanDeLaCruz">Github</a>
+    
+  </nav>
+</header>
+
+  <div>
+    <div class="most-recent post">
+  <h1 class="post-title">
+    GoogleJWT
+  </h1>
+  <div class="metadata">
+    <span class="date">Thursday, 22nd December 2016</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+    Category:&nbsp;
+    
+
+    <span class="category">
+      <a href="/blog/categories/Tutorials/">Tutorials</a>
+    </span>
+
+
+  </div>
+</div>
+
+<main class="post-main">
+  <ul>
+<li>Problem: How to use JSON file from Google for JWT in Ruby</li>
+<li>Context: Ruby lib is not mature yet</li>
+<li>Libraries Used:<ul>
+<li><a href="https://github.com/jwt/ruby-jwt" target="_blank" rel="external">https://github.com/jwt/ruby-jwt</a></li>
+<li>GoogleAuth</li>
+</ul>
+</li>
+<li>Issues encountered:</li>
+<li>no method sign (using Ruby JWT to sign JWT)<ul>
+<li>Used the key in JSON to sign (Extracted the key and put it in secrets)</li>
+<li>‘undefined method sign for string ruby-jwt’</li>
+<li><a href="https://github.com/jwt/ruby-jwt/issues/171" target="_blank" rel="external">https://github.com/jwt/ruby-jwt/issues/171</a></li>
+<li>Solution in the issues for a better error was made AFTER I was making my project</li>
+</ul>
+</li>
+<li>OpenSSL::PKey::RSAError: Neither PUB key nor PRIV key:: nested asn1 error<ul>
+<li>JSON file for key</li>
+<li>Private key -&gt; file.pem<ul>
+<li>Copy-pste private key from JSON to file.pem</li>
+<li>PEM file might be needed</li>
+<li>Still the same error</li>
+<li>My private key had the next line character <code>\n</code></li>
+<li>\n -&gt; next line (instead of string representation)</li>
+<li>VALID JWT</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>JWT =&gt; Google Request for token<ul>
+<li>Invalid Token ERROR</li>
+<li>Switch from JSON to P12 file (petty reason: PEM and P12 both start with p)</li>
+<li>first command had cert and private key in the PEM</li>
+<li>PEM -&gt; OpenSSL lib (Still error)</li>
+<li>private key only</li>
+<li>PEM -&gt; OpenSSL lib</li>
+<li>WORKS</li>
+</ul>
+</li>
+</ul>
+<p>Being relatively new to token authentication, I depended on the provided client libraries to create my authentication token. This is, at least, what I did when I first worked with the Google API.</p>
+<p>On that first project with the Google API, I had free reign over the tech stack I wanted to use. Looking through all the client libraries of Google, there were only a few languages that had mature libraries: Java, .NET, Objective-C, and Python. Since I had free reign, I opted to use Python because I was already comfortable working with Python. On this project, I didn’t have too much of a problem with authentication. I just passed in the JSON file provided for by the <a href="">developers’ console</a>. This returned credentials already (via the ServiceAccountCredentials class).</p>
+<p>On this other project I am working on, though, I didn’t have free reign over the tech. I had to use Rails. The dilemma, for me, was that the Ruby library for working with Google was in <em>ALPHA</em>. Being a project that I’d have to hand over in the near future, I needed to use tools that aren’t suppose to change within the forseeable future. Their own <a href="https://github.com/google/google-api-ruby-client" target="_blank" rel="external">repo</a> was even saying that they could make breaking changes without notice. This was something that I couldn’t risk.<br>// Insert screenshot of repo here</p>
+<p>What were the requirements of the project? First, the app should interact with Google Drive. Second, this app is not necessarily tied to a user’s Google account. The data on Google Drive is the app’s data. This means I had to have server to server interaction. I dreaded this because of the confusion brought about by working with JWTs. This is what this blog post will be about. It will talk about some hitches I’ve hit working with JWTs in Ruby and the Google API.</p>
+<p>I was using the <a href="">Ruby-JWT gem</a> for creating the jwt.</p>
+
+<main>
+
+  </div>
+  <footer>
+  <div class="icon-container">
+    <a href="https://twitter.com/RIanDeLaCruz10">
+      <i class="fa fa-2x fa-twitter">
+      </i>
+    </a>
+    <a href="https://github.com/RIanDeLaCruz">
+      <i class="fa fa-2x fa-github">
+      </i>
+    </a>
+  </div>
+</footer>
+
+  </body>
+</html>
