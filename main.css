@@ -20,6 +20,7 @@ header {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 50;
 }
 
 a:hover {
@@ -151,6 +152,11 @@ ul, ol, li {
   color: white;
 }
 
+.most-recent a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
 .metadata {
   font-family: 'Roboto', sans-serif;
   font-weight: 100;
@@ -159,8 +165,14 @@ ul, ol, li {
   margin-bottom: 0.6875rem;
 }
 
-.metadata a {
+.metadata a, .metadata a:visited {
   color: black;
+  text-decoration: none;
+}
+
+.metadata .category a:hover {
+  color: white;
+  text-decoration: underline;
 }
 
 .most-recent .metadata a {
@@ -276,7 +288,7 @@ footer a {
 
 @media (max-width: 480px) {
   nav { width: 30%; justify-content: flex-end; }
-  nav a:nth-of-type(n+2) {
+  nav a:first-of-type, nav a:nth-of-type(n+3) {
     display: none;
   }
   .post-title, .post-main,

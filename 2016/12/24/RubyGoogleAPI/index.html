@@ -1,0 +1,88 @@
+<html>
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Working with Google Service Accounts in Ruby&nbsp;|&nbsp;Ian De La Cruz Blog</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,400,400i,700" rel="stylesheet">
+  <link rel="stylesheet" href="/blog/font-awesome.min.css">
+  <link rel="stylesheet" href="/blog/main.css">
+  <link rel="stylesheet" href="/blog/monokai-sublime.css">
+  <script src="/blog/highlight.pack.js"></script>
+  <script src="/blog/main.js"></script>
+</head>
+
+  <body>
+    <header>
+  <a href="/blog/">Ian De La Cruz Blog</a>
+  <nav>
+    
+      <a href="/blog/">Home</a>
+    
+      <a href="/blog/archives">Archives</a>
+    
+      <a href="/blog/experiments">Experiments</a>
+    
+      <a href="/blog/about">About Me</a>
+    
+      <a href="https://github.com/RIanDeLaCruz">Github</a>
+    
+  </nav>
+</header>
+
+  <div>
+    <div class="most-recent post">
+  <h1 class="post-title">
+    Working with Google Service Accounts in Ruby
+  </h1>
+  <div class="metadata">
+    <span class="date">Saturday, 24th December 2016</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+    Category:&nbsp;
+    
+
+    <span class="category">
+      <a href="/blog/categories/Tutorials/">Tutorials</a>
+    </span>
+
+
+  </div>
+</div>
+
+<main class="post-main">
+  <p>In this post, I’ll be talking about how to work with a Google Service Account, using Ruby, without the Ruby Client library.</p>
+<p>The inspiration for this post is my personal struggle with using Google Service Account without the client library. I wasn’t using the official client library because of the fact that it was in <em>ALPHA</em>. Being a project that I’ll only be starting, I can’t risk having the library suddenly change.</p>
+<a id="more"></a>
+<p>I’ll be talking about 2 main points: the creation of the JWT itself and errors I encountered. I won’t be talking about what JWTs are in this post. I recommend you go to <a href="https://auth0.com" target="_blank" rel="external">Auth0</a> this.</p>
+<h2 id="Creating-the-JWT"><a href="#Creating-the-JWT" class="headerlink" title="Creating the JWT"></a>Creating the JWT</h2><p>The <a href="https://developers.google.com/identity/protocols/OAuth2ServiceAccount#authorizingrequests" target="_blank" rel="external">documentation</a> for Service Accounts had a pretty good explanation of what was going on how to create the token using HTTP. But, for someone who only has a rudimentary understanding of what a JSON Web Token is, the documentation can become confusing.</p>
+<p>This first part was talking about forming the JWT header. Don’t worry about this. We’ll let the <a href="https://github.com/jwt/ruby-jwt" target="_blank" rel="external">Ruby-JWT library</a> do this for us when we are already encoding.</p>
+<p>The second part talks about creating a claim set. This is a basic JSON Object. There is a description for each key of the object in the documentation. This is what I did in Ruby:</p>
+<script src="//gist.github.com/7d98a79599f43b6949a6fa8befca786b.js"></script>
+<p>The third part talks about signing the JWT. This is where it gets pretty messy. To do this, I created a method that generates the token for me. It basically adds the headers, claim body, and signature for you.</p>
+<script src="//gist.github.com/f3e875062acd065b2b0ab347ff9189f9.js"></script>
+<p>As you can see, I was passing a PEM file to <code>OpenSSL:PKey::RSA.new</code>. This can be found in the <a href="http://ruby-doc.org/stdlib-2.3.0_preview2/libdoc/openssl/rdoc/OpenSSL/PKey/RSA.html" target="_blank" rel="external">documentation</a>. This JWT is now a proper JWT to be passed to Google servers. This is what I did to do this:</p>
+<script src="//gist.github.com/a90b203f2fc840ffafd107f869c54185.js"></script>
+<p>To explain the snippet above, what I first do is create a connection to the auth server. Then, I generate the JWT. Since the url has to be URL-encoded, I passed the grant type to CGI::escape. I, then, append the jwt to the grant-type. Essentially, the body is of this form: <code>grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&amp;assertion=&lt;jwt here&gt;</code></p>
+<p>Google’s response would now contain the Token which you will use to talk to its servers.</p>
+<p>This looks easy and all, but I would like to share some of the errors I encountered to figure out everything I have described above.</p>
+<h2 id="Errors"><a href="#Errors" class="headerlink" title="Errors"></a>Errors</h2><p>When working with the OpenSSL::PKey::RSA, you must pass it a PEM file. This is to avoid a <code>OpenSSL::PKey::RSAError: Neither PUB key nor PRIV key:: nested asn1 error</code>. What I did was pass the file location of the PEM file, relative to root directory.</p>
+<p>Now, a PEM file is not provided for by Google. Instead, the <a href="https://console.developers.google.com" target="_blank" rel="external">developers’ console</a> gives you either a P12 file or JSON file. I usually go for the JSON file. What I learned, though, was that I can use the P12 file to create a PEM file. I found the solution <a href="http://stackoverflow.com/questions/15144046/converting-pkcs12-certificate-into-pem-using-openssl" target="_blank" rel="external">here</a>.</p>
+<p>If you don’t want to open any other page, the command: <code>openssl pkcs12 -in path.p12 -out newfile.key.pem -nocerts -nodes</code>.</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Hopefully, you’ve learned a thing or two about how to use Service Accounts for your own applications. The methods I’ve outlined should be transferrable to other languages. I would, however, recommend that you use Google’s provided <a href="https://developers.google.com/discovery/libraries" target="_blank" rel="external">client libraries</a> when you can.</p>
+
+<main>
+
+  </div>
+  <footer>
+  <div class="icon-container">
+    <a href="https://twitter.com/RIanDeLaCruz10">
+      <i class="fa fa-2x fa-twitter">
+      </i>
+    </a>
+    <a href="https://github.com/RIanDeLaCruz">
+      <i class="fa fa-2x fa-github">
+      </i>
+    </a>
+  </div>
+</footer>
+
+  </body>
+</html>
