@@ -67,6 +67,7 @@
 <p>Now, a PEM file is not provided for by Google. Instead, the <a href="https://console.developers.google.com" target="_blank" rel="external">developers’ console</a> gives you either a P12 file or JSON file. I usually go for the JSON file. What I learned, though, was that I can use the P12 file to create a PEM file. I found the solution <a href="http://stackoverflow.com/questions/15144046/converting-pkcs12-certificate-into-pem-using-openssl" target="_blank" rel="external">here</a>.</p>
 <p>If you don’t want to open any other page, the command: <code>openssl pkcs12 -in path.p12 -out newfile.key.pem -nocerts -nodes</code>.</p>
 <h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>Hopefully, you’ve learned a thing or two about how to use Service Accounts for your own applications. The methods I’ve outlined should be transferrable to other languages. I would, however, recommend that you use Google’s provided <a href="https://developers.google.com/discovery/libraries" target="_blank" rel="external">client libraries</a> when you can.</p>
+<p>If you have any questions, you can ping me on Twitter <a href="https://twitter.com/RIanDeLaCruz10" target="_blank" rel="external">@RIanDeLaCruz10</a>. Have a Great Day and Merry Christmas!</p>
 
 <main>
 
